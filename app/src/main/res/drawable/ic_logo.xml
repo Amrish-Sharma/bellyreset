@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Outer Ring (Turmeric) -->
+    <path
+        android:fillColor="#E2A73F"
+        android:pathData="M50,10C27.9,10 10,27.9 10,50s17.9,40 40,40s40,-17.9 40,-40S72.1,10 50,10zM50,82c-17.7,0 -32,-14.3 -32,-32s14.3,-32 32,-32s32,14.3 32,32S67.7,82 50,82z" />
+    <!-- Stylized Leaf/Belly Curve (Pine) -->
+    <path
+        android:fillColor="#2E4D32"
+        android:pathData="M50,30c-11,0 -20,9 -20,20c0,5.5 2.2,10.5 5.9,14.1l4.2,-4.2c-2.5,-2.5 -4.1,-5.9 -4.1,-9.9c0,-7.7 6.3,-14 14,-14s14,6.3 14,14c0,4 -1.6,7.4 -4.1,9.9l4.2,4.2c3.7,-3.6 5.9,-8.6 5.9,-14.1C70,39 61,30 50,30z" />
+    <path
+        android:fillColor="#2E4D32"
+        android:pathData="M50,45c-2.8,0 -5,2.2 -5,5s2.2,5 5,5s5,-2.2 5,-5S52.8,45 50,45z" />
+    <!-- Small Leaf Accent -->
+    <path
+        android:fillColor="#2E4D32"
+        android:pathData="M50,20c1,0 2,0.5 2.5,1.5s0.5,2 -0.5,3s-2,1.5 -3.5,1.5s-2.5,-0.5 -3,-1.5s-0.5,-2 0.5,-3s2,-1.5 4,-1.5z" />
+</vector>
