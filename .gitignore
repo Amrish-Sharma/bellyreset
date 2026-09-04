@@ -16,3 +16,5 @@
 local.properties
 /.artifacts
 /.idea
+keystore.properties
+release-keystore.jks
