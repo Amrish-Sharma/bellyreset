@@ -8,32 +8,63 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Turmeric,
-    secondary = PineLight,
-    tertiary = Pine,
-    background = PineDark,
-    surface = PineDark,
-    onPrimary = PineDark,
-    onSecondary = PineDark,
-    onTertiary = TurmericLight,
-    onBackground = SoftCream,
-    onSurface = SoftCream
+    primary = PineBright,
+    onPrimary = OnPineBright,
+    primaryContainer = Pine,
+    onPrimaryContainer = PineContainer,
+    secondary = Turmeric,
+    onSecondary = OnTurmericContainer,
+    secondaryContainer = TurmericContainerDark,
+    onSecondaryContainer = TurmericContainer,
+    tertiary = TurmericLight,
+    onTertiary = OnTurmericContainer,
+    tertiaryContainer = TurmericContainerDark,
+    onTertiaryContainer = TurmericContainer,
+    background = Night,
+    onBackground = OnNight,
+    surface = Night,
+    onSurface = OnNight,
+    surfaceVariant = NightVariant,
+    onSurfaceVariant = OnNightVariant,
+    outline = NightOutline,
+    outlineVariant = NightVariant,
+    surfaceContainerLowest = NightContainerLowest,
+    surfaceContainerLow = NightContainerLow,
+    surfaceContainer = NightContainer,
+    surfaceContainerHigh = NightContainerHigh,
+    surfaceContainerHighest = NightContainerHighest
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Pine,
-    secondary = Turmeric,
-    tertiary = TurmericDark,
-    background = SoftCream,
-    surface = SoftCream,
     onPrimary = SoftCream,
-    onSecondary = PineDark,
+    primaryContainer = PineContainer,
+    onPrimaryContainer = PineDark,
+    secondary = TurmericDeep,
+    onSecondary = SoftCream,
+    secondaryContainer = TurmericContainer,
+    onSecondaryContainer = OnTurmericContainer,
+    tertiary = TurmericDark,
     onTertiary = SoftCream,
+    tertiaryContainer = TurmericContainer,
+    onTertiaryContainer = OnTurmericContainer,
+    background = SoftCream,
     onBackground = PineDark,
-    onSurface = PineDark
+    surface = SoftCream,
+    onSurface = PineDark,
+    surfaceVariant = CreamVariant,
+    onSurfaceVariant = OnCreamVariant,
+    outline = CreamOutline,
+    outlineVariant = CreamOutlineVariant,
+    surfaceContainerLowest = Color.White,
+    surfaceContainerLow = CreamContainerLow,
+    surfaceContainer = CreamContainer,
+    surfaceContainerHigh = CreamContainerHigh,
+    surfaceContainerHighest = CreamContainerHighest
 )
 
 @Composable

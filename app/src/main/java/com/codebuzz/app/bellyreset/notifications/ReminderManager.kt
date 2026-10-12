@@ -16,6 +16,22 @@ object ReminderManager {
         scheduleWeeklyReminder(context)
     }
 
+    fun cancelReminders(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        listOf(DAILY_REMINDER_ID, WEEKLY_REMINDER_ID).forEach { id ->
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                id,
+                Intent(context, ReminderReceiver::class.java),
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            )
+            if (pendingIntent != null) {
+                alarmManager.cancel(pendingIntent)
+                pendingIntent.cancel()
+            }
+        }
+    }
+
     private fun scheduleDailyReminder(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderReceiver::class.java).apply {

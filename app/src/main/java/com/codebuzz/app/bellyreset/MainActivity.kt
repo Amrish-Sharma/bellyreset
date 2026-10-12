@@ -2,13 +2,15 @@ package com.codebuzz.app.bellyreset
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ListAlt
 import androidx.compose.material.icons.rounded.CalendarToday
@@ -18,15 +20,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.content.ContextCompat
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.NavEntry
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.codebuzz.app.bellyreset.data.model.ThemeMode
 import com.codebuzz.app.bellyreset.data.repository.TrackerRepository
 import com.codebuzz.app.bellyreset.notifications.ReminderManager
 import com.codebuzz.app.bellyreset.ui.navigation.BellyResetNavKey
@@ -39,27 +43,62 @@ import com.codebuzz.app.bellyreset.ui.tracker.TrackerViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
+// Same scrims enableEdgeToEdge() uses by default for the navigation bar
+private val lightScrim = Color.argb(0xe6, 0xFF, 0xFF, 0xFF)
+private val darkScrim = Color.argb(0x80, 0x1b, 0x1b, 0x1b)
+
 class MainActivity : ComponentActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { _ ->
-        // Whether granted or not, we attempt to schedule. 
+        // Reminders are scheduled either way.
         // Showing notification will fail gracefully if permission is missing.
-        ReminderManager.scheduleReminders(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        
-        checkNotificationPermission()
-        ReminderManager.scheduleReminders(this)
 
         val repository = TrackerRepository(applicationContext)
         setContent {
-            BellyResetTheme {
-                MainScreen(repository)
+            val trackerViewModel: TrackerViewModel = viewModel(
+                factory = object : ViewModelProvider.Factory {
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        return TrackerViewModel(repository) as T
+                    }
+                }
+            )
+            val settings by trackerViewModel.settings.collectAsState()
+
+            val darkTheme = when (settings?.themeMode) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                else -> isSystemInDarkTheme()
+            }
+            // Keep system bar icons readable when the app theme differs from the system theme
+            DisposableEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.auto(lightScrim, darkScrim) { darkTheme }
+                )
+                onDispose { }
+            }
+
+            val remindersEnabled = settings?.remindersEnabled
+            LaunchedEffect(remindersEnabled) {
+                when (remindersEnabled) {
+                    true -> {
+                        checkNotificationPermission()
+                        ReminderManager.scheduleReminders(this@MainActivity)
+                    }
+                    false -> ReminderManager.cancelReminders(this@MainActivity)
+                    null -> Unit // settings not loaded yet
+                }
+            }
+
+            BellyResetTheme(darkTheme = darkTheme) {
+                MainScreen(trackerViewModel)
             }
         }
     }
@@ -76,17 +115,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen(repository: TrackerRepository) {
+fun MainScreen(trackerViewModel: TrackerViewModel) {
     val backStack = rememberNavBackStack(BellyResetNavKey.Today)
-    
-    val trackerViewModel: TrackerViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return TrackerViewModel(repository) as T
-            }
-        }
-    )
-    
+
     val items = listOf(
         NavigationItem(
             key = BellyResetNavKey.Today,
@@ -117,11 +148,16 @@ fun MainScreen(repository: TrackerRepository) {
                     selected = backStack.last() == item.key,
                     onClick = {
                         if (backStack.last() != item.key) {
-                            backStack.clear()
-                            backStack.add(item.key)
+                            // Today stays at the bottom of the stack so Back returns to it before exiting
+                            while (backStack.size > 1) {
+                                backStack.removeAt(backStack.size - 1)
+                            }
+                            if (item.key != BellyResetNavKey.Today) {
+                                backStack.add(item.key)
+                            }
                         }
                     },
-                    icon = { Icon(item.icon, contentDescription = item.label) },
+                    icon = { Icon(item.icon, contentDescription = null) },
                     label = { Text(item.label) }
                 )
             }
@@ -141,7 +177,7 @@ fun MainScreen(repository: TrackerRepository) {
                     PlanScreen()
                 }
                 entry<BellyResetNavKey.Settings> {
-                    SettingsScreen()
+                    SettingsScreen(trackerViewModel)
                 }
             }
         )
@@ -153,4 +189,3 @@ data class NavigationItem(
     val label: String,
     val icon: ImageVector
 )
-

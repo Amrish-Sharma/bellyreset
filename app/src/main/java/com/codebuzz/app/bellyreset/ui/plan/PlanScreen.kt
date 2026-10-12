@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.codebuzz.app.bellyreset.ui.components.BellyResetTopBar
 
 @Composable
 fun PlanScreen() {
@@ -21,19 +22,17 @@ fun PlanScreen() {
         PlanPhase("Phase 4: Maintenance", "Sustainable habits for the long term.", false)
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Your Belly Reset Plan",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        
+    Scaffold(
+        topBar = { BellyResetTopBar(title = "Your Plan") }
+    ) { innerPadding ->
         LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = innerPadding.calculateTopPadding() + 8.dp,
+                bottom = innerPadding.calculateBottomPadding() + 24.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(planPhases) { phase ->
@@ -54,7 +53,7 @@ fun PhaseItem(phase: PlanPhase) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         )
     ) {
         Row(
@@ -65,13 +64,17 @@ fun PhaseItem(phase: PlanPhase) {
         ) {
             Icon(
                 imageVector = if (phase.isCompleted) Icons.Rounded.CheckCircle else Icons.Rounded.RadioButtonUnchecked,
-                contentDescription = null,
+                contentDescription = if (phase.isCompleted) "Completed" else "Not completed",
                 tint = if (phase.isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(text = phase.title, style = MaterialTheme.typography.titleMedium)
-                Text(text = phase.description, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = phase.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

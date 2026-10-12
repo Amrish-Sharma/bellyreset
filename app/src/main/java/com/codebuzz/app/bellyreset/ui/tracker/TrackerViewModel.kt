@@ -2,7 +2,9 @@ package com.codebuzz.app.bellyreset.ui.tracker
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.codebuzz.app.bellyreset.data.model.AppSettings
 import com.codebuzz.app.bellyreset.data.model.DailyRecord
+import com.codebuzz.app.bellyreset.data.model.ThemeMode
 import com.codebuzz.app.bellyreset.data.model.Meal
 import com.codebuzz.app.bellyreset.data.repository.TrackerRepository
 import com.codebuzz.app.bellyreset.data.model.MetricEntry
@@ -47,6 +49,27 @@ class TrackerViewModel(private val repository: TrackerRepository) : ViewModel() 
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = 0
         )
+
+    // null until the stored settings have been read
+    val settings: StateFlow<AppSettings?> = repository.trackerState
+        .map { it.settings }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
+    fun setRemindersEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.updateSettings { it.copy(remindersEnabled = enabled) }
+        }
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch {
+            repository.updateSettings { it.copy(themeMode = mode) }
+        }
+    }
 
     fun updateWaterIntake(delta: Double) {
         viewModelScope.launch {
@@ -127,12 +150,7 @@ class TrackerViewModel(private val repository: TrackerRepository) : ViewModel() 
     }
 
     private fun DailyRecord.calculateAdherence(): DailyRecord {
-        val totalItems = meals.size + 1 + 1 // meals + movement + (placeholder for water goal)
-        var completedItems = meals.count { it.isCompleted }
-        if (movementCompleted) completedItems++
-        if (waterIntakeLiters >= 2.0) completedItems++ // Assuming 2.0L is the goal
-
-        val score = (completedItems.toFloat() / totalItems.toFloat() * 100).toInt()
+        val score = (goalsCompleted.toFloat() / goalsTotal.toFloat() * 100).toInt()
         return this.copy(adherenceScore = score)
     }
 }

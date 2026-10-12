@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.dataStore
 import com.codebuzz.app.bellyreset.data.datastore.TrackerSerializer
+import com.codebuzz.app.bellyreset.data.model.AppSettings
 import com.codebuzz.app.bellyreset.data.model.DailyRecord
 import com.codebuzz.app.bellyreset.data.model.MetricEntry
 import com.codebuzz.app.bellyreset.data.model.TrackerState
@@ -37,12 +38,22 @@ class TrackerRepository(private val context: Context) {
 
     suspend fun addMetricEntry(entry: MetricEntry) {
         context.trackerDataStore.updateData { currentState ->
-            val updatedMetrics = currentState.metrics.toMutableList()
-            updatedMetrics.add(entry)
-            currentState.copy(metrics = updatedMetrics)
+            // One entry per day: logging again on the same day updates that day's values
+            val existing = currentState.metrics.find { it.date == entry.date }
+            val merged = existing?.copy(
+                waistCircumferenceCm = entry.waistCircumferenceCm ?: existing.waistCircumferenceCm,
+                weightKg = entry.weightKg ?: existing.weightKg
+            ) ?: entry
+            currentState.copy(metrics = currentState.metrics.filter { it.date != entry.date } + merged)
         }
     }
-    
+
+    suspend fun updateSettings(transform: (AppSettings) -> AppSettings) {
+        context.trackerDataStore.updateData { currentState ->
+            currentState.copy(settings = transform(currentState.settings))
+        }
+    }
+
     suspend fun clearAllData() {
         context.trackerDataStore.updateData {
             TrackerState()
